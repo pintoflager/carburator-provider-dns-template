@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-carburator print terminal info "Invoking $DOMAIN_PROVIDER_NAME DNS API provider..."
+carburator print terminal info "Invoking $DOMAIN_LOCKED_PROVIDER_NAME DNS API provider..."
 
 resource="zone"
 zone="${DOMAIN_FQDN}_${resource}"
 zone_out="$DNS_PROVIDER_PATH/$zone.json"
-existing_zones="$DNS_PROVIDER_PATH/${DOMAIN_PROVIDER_NAME}_zones.json"
+existing_zones="$DNS_PROVIDER_PATH/${DOMAIN_LOCKED_PROVIDER_NAME}_zones.json"
 
 # This dir most likely is not present during the first install
 mkdir -p "$DNS_PROVIDER_PATH"
@@ -19,7 +19,7 @@ exitcode=$?
 
 if [[ -z $token || $exitcode -gt 0 ]]; then
 	carburator print terminal error \
-		"Could not load $DOMAIN_PROVIDER_NAME DNS API token from secret. \
+		"Could not load $DOMAIN_LOCKED_PROVIDER_NAME DNS API token from secret. \
         Unable to proceed"
 	exit 120
 fi
@@ -91,7 +91,7 @@ if [[ -z $zones || $(wc -l <<< "$zones") -eq 0 ]]; then
     
     if create_zone "$token" "$DOMAIN_FQDN" "$zone_out"; then
         carburator print terminal success \
-            "$DOMAIN_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
+            "$DOMAIN_LOCKED_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
         exit 0
     else
         exit 110
@@ -101,7 +101,7 @@ fi
 # Only one zone matches
 if [[ $(wc -l <<< "$zones") -eq 1 ]]; then
     carburator print terminal warn \
-        "Duplicate DNS zone for $DOMAIN_FQDN found from $DOMAIN_PROVIDER_NAME DNS."
+        "Duplicate DNS zone for $DOMAIN_FQDN found from $DOMAIN_LOCKED_PROVIDER_NAME DNS."
 
     carburator prompt yes-no \
         "Should we destroy existing zone and create a new one, or use the found zone?" \
@@ -115,7 +115,7 @@ if [[ $(wc -l <<< "$zones") -eq 1 ]]; then
         if create_zone "$token" "$DOMAIN_FQDN" "$zone_out"; then
             rm -f "$existing_zones"
             carburator print terminal success \
-                "$DOMAIN_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
+                "$DOMAIN_LOCKED_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
             exit 0
         else
             exit 110
