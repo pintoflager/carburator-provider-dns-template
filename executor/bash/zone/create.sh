@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-carburator print terminal info "Invoking $DOMAIN_LOCKED_PROVIDER_NAME DNS API provider..."
+carburator log info "Invoking $DOMAIN_LOCKED_PROVIDER_NAME DNS API provider..."
 
 resource="zone"
 zone="${DOMAIN_FQDN}_${resource}"
@@ -18,7 +18,7 @@ token=$(carburator get secret "$DNS_PROVIDER_SECRETS_0" --user root)
 exitcode=$?
 
 if [[ -z $token || $exitcode -gt 0 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"Could not load $DOMAIN_LOCKED_PROVIDER_NAME DNS API token from secret. \
         Unable to proceed"
 	exit 120
@@ -33,7 +33,7 @@ create_zone() {
 
     # Assuming create failed as we cant load a zone id.
 	if ! carburator has json zone.id -p "$3"; then
-        carburator print terminal error "Create zone '$2' failed."
+        carburator log error "Create zone '$2' failed."
 		rm -f "$3"; return 1
 	fi
 }
@@ -77,7 +77,7 @@ if [[ -e $zone_out ]]; then
     fi
 fi
 
-carburator print terminal attention \
+carburator log attention \
     "DNS zone file for $DOMAIN_FQDN not found, searching existing zones..."
 
 # Output file doesn't exist or zone verify failed.
@@ -90,7 +90,7 @@ if [[ -z $zones || $(wc -l <<< "$zones") -eq 0 ]]; then
     rm -f "$existing_zones"
     
     if create_zone "$token" "$DOMAIN_FQDN" "$zone_out"; then
-        carburator print terminal success \
+        carburator log success \
             "$DOMAIN_LOCKED_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
         exit 0
     else
@@ -100,7 +100,7 @@ fi
 
 # Only one zone matches
 if [[ $(wc -l <<< "$zones") -eq 1 ]]; then
-    carburator print terminal warn \
+    carburator log warn \
         "Duplicate DNS zone for $DOMAIN_FQDN found from $DOMAIN_LOCKED_PROVIDER_NAME DNS."
 
     carburator prompt yes-no \
@@ -114,7 +114,7 @@ if [[ $(wc -l <<< "$zones") -eq 1 ]]; then
         destroy_zone "$token" "$id"
         if create_zone "$token" "$DOMAIN_FQDN" "$zone_out"; then
             rm -f "$existing_zones"
-            carburator print terminal success \
+            carburator log success \
                 "$DOMAIN_LOCKED_PROVIDER_NAME DNS zone for $DOMAIN_FQDN created."
             exit 0
         else
@@ -129,7 +129,7 @@ fi
 
 # Still here, more than one (1) matching zones, how is that even possible, I don't
 # know, but it seems to have happened.
-carburator print terminal error \
+carburator log error \
     "Multiple DNS zones match to $DOMAIN_FQDN, Unable to proceed with zone \
     registration. Use your human touch with existing DNS zones before trying \
     again."
